@@ -385,7 +385,7 @@ namespace AreYouCoding
             }
             else
             {
-                System.Windows.MessageBox.Show("record file don't exist");
+                System.Windows.MessageBox.Show("record file don't exist", "Error");
                 return;
             }
 
@@ -454,8 +454,11 @@ namespace AreYouCoding
                     }
                     else if (String.Equals(strDate.Substring(2), strstartingTime))      // 如果是还读取到了重复的情况
                     {
-                        txtline.RemoveAt(linecount);
-                        linecount--;
+                        if (txtline.Count > 1)
+                        {
+                            txtline.RemoveAt(linecount);
+                            linecount--;
+                        }
                     }
                     else  // 没有得到到结束时间 但是是两个不同的开始时间说明前一个是异常时间 后一个仍在监视
                     {

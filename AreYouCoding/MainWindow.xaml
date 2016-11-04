@@ -3,7 +3,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MainWindow" Height="350" Width="525" Closing="Window_Closing" Loaded="Window_Loaded">
     <Grid>
-        <TabControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Name="tabControl" >
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="152*"/>
+            <ColumnDefinition Width="365*"/>
+        </Grid.ColumnDefinitions>
+        <TabControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Name="tabControl" Grid.ColumnSpan="2" >
             <TabItem Name="dynamics" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                 <TabItem.Header>
                     <Label Content="Detail dynamics" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MouseLeftButtonDown="Dynamics_MouseLeftButtonDown" FontSize="12"/>
