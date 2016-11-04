@@ -1,12 +1,73 @@
 ﻿<Window x:Class="AreYouCoding.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:AreYouCoding"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+        Title="MainWindow" Height="350" Width="525" Closing="Window_Closing" Loaded="Window_Loaded">
     <Grid>
-        
+        <TabControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Name="tabControl" >
+            <TabItem Name="dynamics" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <TabItem.Header>
+                    <Label Content="Detail dynamics" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MouseLeftButtonDown="Dynamics_MouseLeftButtonDown" FontSize="12"/>
+                </TabItem.Header>
+                <Grid>
+                    <Button Content="new monitor" Height="23" HorizontalAlignment="Right" Margin="0,0,1,1" Name="newMonitor" VerticalAlignment="Bottom" Width="100" Click="newMonitor_Click"/>
+                    <Label Content="Recent dynamics" Height="28" HorizontalAlignment="Left" Name="label1" VerticalAlignment="Top" Width="114" />
+                    <Image Height="32" HorizontalAlignment="Left" Margin="15,34,0,0" Name="firstIcon" Stretch="Fill" VerticalAlignment="Top" Width="32" />
+                </Grid>
+            </TabItem>
+
+            <TabItem Name="detail" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <TabItem.Header>
+                    <Label Content="Detail situation" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MouseLeftButtonDown="Situation_MouseLeftButtonDown" FontSize="12" />
+                </TabItem.Header>
+                <Grid>
+                    <ComboBox Height="23" HorizontalAlignment="Left" Name="detailProcessName" VerticalAlignment="Top" Width="120" SelectionChanged="detailProcessName_SelectionChanged"/>
+                    <Button Height="23" Width="100" HorizontalAlignment="Right" Margin="0,0,20,0" Name="deleteMonitor" VerticalAlignment="Top" Click="deleteMonitor_Click">
+                        <Grid Width="100" Height="23" VerticalAlignment="Top">
+                            <Label FontSize="11" Height="23" Width="60" Content="delete" VerticalAlignment="Top" HorizontalAlignment="center" HorizontalContentAlignment="Center" Margin="0,-2,0,0"/>
+                            <Image Height="23" Width="40" Name="deleteImage" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="0,-2,0,0"/>
+                        </Grid>
+                    </Button>
+                    <ListView HorizontalAlignment="Stretch" Margin="0,29,0,0" Name="listView" VerticalAlignment="Stretch" ItemsSource="{Binding}" HorizontalContentAlignment="Left" Grid.ColumnSpan="2" >
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Count" DisplayMemberBinding="{Binding count}" Width="50" />
+                                <GridViewColumn Header="Starting Time" DisplayMemberBinding="{Binding startingTime}" Width="150"/>
+                                <GridViewColumn Header="Ending Time" DisplayMemberBinding="{Binding endingTime}" Width="150" />
+                                <GridViewColumn Header="Running Time" DisplayMemberBinding="{Binding runningTime}" Width="150" />
+                            </GridView>
+                        </ListView.View>
+
+                        <ListView.ContextMenu>
+                            <ContextMenu Name="listMenu" StaysOpen="True">
+                                <MenuItem Header="delete" Name="deleteItem" Click="deleteItem_Click" />
+                                <MenuItem Header="correct" Name="correctItem" Click="correctItem_Click" />
+                            </ContextMenu>
+                        </ListView.ContextMenu>
+                    </ListView>
+                </Grid>
+            </TabItem>
+
+            <TabItem Name="setting">
+                <TabItem.Header>
+                    <Label Content="Setting" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+                </TabItem.Header>
+                <Grid>
+                    <Label Content="common" Height="28" HorizontalAlignment="Left" Margin="6,6,0,0" VerticalAlignment="Top" Width="74" />
+
+                    <Grid x:Name="back" Background="Transparent" Width="60" Height="24" Margin="85,6,366,252">
+                        <Border BorderBrush="Green" BorderThickness="1" Margin="4" Padding="0" CornerRadius="8" Background="#2ecc71">
+                            <Rectangle Name="rectangle" Fill="#e74c3c" RadiusX="8" RadiusY="8" Visibility="Collapsed" />
+                        </Border>
+                        <Border Name="silderBorder" BorderBrush="White" BorderThickness="1" HorizontalAlignment="Left" CornerRadius="15" Width="25" Height="25">
+                            <Rectangle Stroke="Brown" Fill="#FFF1F1F1" StrokeThickness="0" Width="22" RadiusX="15" RadiusY="15" />
+                        </Border>
+                    </Grid>
+
+                    <Label Content="start in boot" Height="28" HorizontalAlignment="Left" Margin="6,39,0,0" VerticalAlignment="Top" Width="85" />
+                    <CheckBox x:Name="IsStartInBoot" HorizontalAlignment="Left" Margin="110,45,0,0" VerticalAlignment="Top" Checked="IsStartInBoot_Checked" Unchecked="IsStartInBoot_Unchecked"/>
+                </Grid>
+            </TabItem>
+
+        </TabControl>
     </Grid>
 </Window>

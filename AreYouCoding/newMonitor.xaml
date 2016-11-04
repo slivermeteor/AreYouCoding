@@ -1,0 +1,31 @@
+﻿<Window x:Class="AreYouCoding.newMonitor"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="newMonitor" Height="145" Width="287">
+    <Grid>
+        <TextBox Height="30" HorizontalAlignment="Stretch" Name="processName" VerticalAlignment="Top" TextWrapping="Wrap" Margin="12,0" FontSize="15">
+            <TextBox.Resources>
+                <VisualBrush x:Key="background" AlignmentX="Left" TileMode="None" Opacity="0.3">
+                    <VisualBrush.Visual>
+                        <TextBlock Text="input the process name(don't input extension)" TextWrapping="Wrap" FontSize="10"/>
+                    </VisualBrush.Visual>
+                </VisualBrush>
+            </TextBox.Resources>
+
+            <TextBox.Style>
+                <Style TargetType="TextBox">
+                    <Style.Triggers>
+                        <Trigger Property="Text" Value="{x:Null}">
+                            <Setter Property="Background" Value="{StaticResource background}"/>
+                        </Trigger>
+                        <Trigger Property="Text" Value="">
+                            <Setter Property="Background" Value="{StaticResource background}"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBox.Style>
+        </TextBox>
+
+        <Button Content="monitor" Height="23" HorizontalAlignment="Center" Name="monitorButton" VerticalAlignment="Center" Width="75" Margin="95,47,95,35" Click="monitorButton_Click"/>
+    </Grid>
+</Window>
