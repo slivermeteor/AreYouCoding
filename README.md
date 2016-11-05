@@ -1,28 +1,19 @@
-# AreYouCoding
-Are you coding everday?
+# Welcome to use AreYouCoding - Count you the time of use any software that you want to count
 
-功能简介:
-单监视VS 程序设计目标
+## Introduce
+This project is written by C#, perhaps i will add dll written by C++ to the project in the future.
+This projrct's boundary is use the WPF.
 
-程序流程图
-1.程序启动 寻找VS进程               
-   1.1 找到了VS 得到VS启动时间 结束寻找进程 转到监视结束进程(每分钟扫描一次系统进程,当发现没有VS时记录时间)     
-   1.2 没找到VS 也转到监视开始进程 每分钟寻找VS 找到了VS 也转到监视结束进程      
-	-> 两个监视进程 是否可以合并到一起 如果合并一起 如何让两个区分开？            
-	-> 得到时间后 用类成员变量保存           
-	-> 在一次关闭后 应该把启动时间写入文件 然后又 List 会枚举出所有启动关闭的记录            
-2.开机启动 --- 写入注册表    
-    
-思考与问题:  
-1.如果存在多个同名进程，我应该分别监视每一个进程。在监视到一个进程后，我们应该取得PID，然后靠这个进行后续的监视。这样我们就能做到同姓名，多进程监视？   
-    
-BUG:    
-1.程序退出的时候 应该把还在监视的线程的时间记录删除 不然会重复写入造成问题      
-    ->点击combobox的时候 首先记得清空列表 读取文件 应该对文件进行整理         
-    如果出现我们的程序在监视的进程退出 就会出现 重复记录启动的时间 所以应该进行检查           
-    ->如果在我们关闭的时候 监视的程序也退出,那么我们就得到监视         
-    -> 但是这种情况记录的启动时间和第二次监视到的肯定不一样 我们把这种情况单独拉出来处理,设置为异常,允许用户自己添加结束时间.                 
-    -> 记录文件的修改.              
-2.listview 居中对齐             
-3.监视线程的第一次等待时间               
+## Target 
+Now, this project is still very poor.It's boundary is still very simple and crude, because I'm not good at WPF or C#. but I'm studying.In my opinion, 
+the C# is a very intertesting programming language.I wish to code this project to improve my C#.
 
+## Functions
+1.The main window will monitor any process you want to, and recoed it's start time and end time.Show you the process run time if you want.
+
+## Bugs
+1.If there is more than two process have a same name, main window will only monitor the first start process, and recoed the end time of the last exit process.
+
+## What i will do
+1.I will perfect "Detail dynamics"  label as soon as possible.
+2.I wiil fix the the bug of that can't monitor processes of the same name.
