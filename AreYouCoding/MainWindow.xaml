@@ -4,10 +4,10 @@
         Title="MainWindow" Height="350" Width="525" Closing="Window_Closing" Loaded="Window_Loaded">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="152*"/>
-            <ColumnDefinition Width="365*"/>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="0*"/>
         </Grid.ColumnDefinitions>
-        <TabControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Name="tabControl" Grid.ColumnSpan="2" >
+        <TabControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Name="tabControl" >
             <TabItem Name="dynamics" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                 <TabItem.Header>
                     <Label Content="Detail dynamics" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MouseLeftButtonDown="Dynamics_MouseLeftButtonDown" FontSize="12"/>
@@ -57,15 +57,6 @@
                 </TabItem.Header>
                 <Grid>
                     <Label Content="common" Height="28" HorizontalAlignment="Left" Margin="6,6,0,0" VerticalAlignment="Top" Width="74" />
-
-                    <Grid x:Name="back" Background="Transparent" Width="60" Height="24" Margin="85,6,366,252">
-                        <Border BorderBrush="Green" BorderThickness="1" Margin="4" Padding="0" CornerRadius="8" Background="#2ecc71">
-                            <Rectangle Name="rectangle" Fill="#e74c3c" RadiusX="8" RadiusY="8" Visibility="Collapsed" />
-                        </Border>
-                        <Border Name="silderBorder" BorderBrush="White" BorderThickness="1" HorizontalAlignment="Left" CornerRadius="15" Width="25" Height="25">
-                            <Rectangle Stroke="Brown" Fill="#FFF1F1F1" StrokeThickness="0" Width="22" RadiusX="15" RadiusY="15" />
-                        </Border>
-                    </Grid>
 
                     <Label Content="start in boot" Height="28" HorizontalAlignment="Left" Margin="6,39,0,0" VerticalAlignment="Top" Width="85" />
                     <CheckBox x:Name="IsStartInBoot" HorizontalAlignment="Left" Margin="110,45,0,0" VerticalAlignment="Top" Checked="IsStartInBoot_Checked" Unchecked="IsStartInBoot_Unchecked"/>

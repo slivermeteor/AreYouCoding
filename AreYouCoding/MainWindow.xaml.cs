@@ -29,6 +29,12 @@ namespace AreYouCoding
     /// MainWindow.xaml 的交互逻辑
     /// </summary>
 
+    public struct MonitorNode
+    {
+        public string ProcessName;
+        public List<int> ProcessIdList;
+    }
+
     public partial class MainWindow : Window
     {
         public delegate void delegateRefreshThread();     // 后台进程 委托数据类型
@@ -43,7 +49,7 @@ namespace AreYouCoding
         private ObservableCollection<listviewItem> listviewItem = new ObservableCollection<listviewItem>(); // item数据结构
 
         private NotifyIcon notifyIcon;
-        private monitorList<string> monitorlist = new monitorList<string>();
+        private monitorList<MonitorNode> monitorlist = new monitorList<MonitorNode>();
 
         // ini文件API导入
         #region
@@ -61,34 +67,41 @@ namespace AreYouCoding
         {
             //[System.Runtime.InteropServices.DllImport("shell32.dll")]
             DateTime processTime;
-            string targetThread = (string)targetObject;
-
-
+            int processId = (int)targetObject;
+            string strProcessName;
+ 
             Process[] scanProcess;
 
             // 首先寻找目标进程 直到找到
 
             while (true)
             {
-                scanProcess = Process.GetProcesses();     // System.Diagnostics
+                scanProcess = Process.GetProcesses();     // using System.Diagnostics
                 foreach (Process process in scanProcess)
                 {
-
-                    if (string.Equals(process.ProcessName, targetThread, StringComparison.OrdinalIgnoreCase))
+                    
+                    //if (string.Equals(process.ProcessName, targetThread, StringComparison.OrdinalIgnoreCase))
+                    if (process.Id == processId)
                     {
                         /// 扫描到  启动监视进程结束
                         processTime = process.StartTime;
-                        recordRunTime(targetThread, processTime.ToString(), 1);
+                        strProcessName = process.ProcessName;
+                        recordRunTime(strProcessName, processId, processTime.ToString(), 1);
 
                         // 得到进程ICON 保留下来
-                        Icon icon = System.Drawing.Icon.ExtractAssociatedIcon(process.MainModule.FileName.ToString());
-                        FileStream newIcon = new FileStream(resourceDirectory + "\\" + process.ProcessName + ".ico", FileMode.Create);
-                        icon.Save(newIcon);
-                        newIcon.Close();
+                        if (!IsFileExists(resourceDirectory + "\\" + process.ProcessName + ".ico"))
+                        {
+                            Icon icon = System.Drawing.Icon.ExtractAssociatedIcon(process.MainModule.FileName.ToString());
+                            FileStream newIcon = new FileStream(resourceDirectory + "\\" + process.ProcessName + ".ico", FileMode.Create);
+                            icon.Save(newIcon);
+                            newIcon.Close();
+                        }
+                        
+                        //System.Threading.ParameterizedThreadStart ts = new System.Threading.ParameterizedThreadStart(monitorEndThread);        
+                        //System.Threading.Thread thread = new System.Threading.Thread(ts);
+                        //thread.Start(targetThread);
 
-                        System.Threading.ParameterizedThreadStart ts = new System.Threading.ParameterizedThreadStart(monitorEndThread);        // 主窗口启动后台扫描进程
-                        System.Threading.Thread thread = new System.Threading.Thread(ts);
-                        thread.Start(targetThread);
+                        ThreadPool.QueueUserWorkItem(monitorEndThread, process);       // 主窗口启动后台扫描进程
 
                         return;
                     }
@@ -97,7 +110,6 @@ namespace AreYouCoding
                 // 没扫描到 休眠30秒再来
                 Thread.Sleep(30000);
             }
-
         }
 
         public void monitorEndThread(Object targetObject)
@@ -105,8 +117,10 @@ namespace AreYouCoding
             // 一开始有两种想法 一种是每隔一分钟启动一个监视结束线程 另一种只启动一个监视结束线程 每扫描一次 睡一分钟
             Process[] scanProcess;
             DateTime processTime;
-
-            String strTarget = (String)targetObject;
+            Process targetProcess = (Process)targetObject;
+            string strProcessName = targetProcess.ProcessName;
+            int processId = targetProcess.Id;
+            
             bool IsScan = false;
 
             while (true)
@@ -115,7 +129,7 @@ namespace AreYouCoding
                 scanProcess = Process.GetProcesses();
                 foreach (Process process in scanProcess)
                 {
-                    if (String.Equals(process.ProcessName, strTarget, StringComparison.OrdinalIgnoreCase))
+                    if (process.Id == processId)
                     {
                         Thread.Sleep(60000);        /// -> 第一次等待的时间有待完善 最好等待 使下一次开始扫描的时候是每分钟开始的时候
                         IsScan = true;              // 扫描到了目标进程 不记录时间
@@ -130,22 +144,44 @@ namespace AreYouCoding
                     processTime = DateTime.Now;
 
                     // 写入文件 记录这一次开启关闭操作 同时启动新的监视开始线程
-                    recordRunTime(strTarget, processTime.ToString(), 2);
-
-                    System.Threading.ParameterizedThreadStart ts = new System.Threading.ParameterizedThreadStart(monitorThread);        // 主窗口启动后台扫描进程
-                    System.Threading.Thread thread = new System.Threading.Thread(ts);
-                    thread.Start(strTarget);
-
+                    recordRunTime(strProcessName, processId, processTime.ToString(), 2);
                     return;
                 }
             }
         }
 
-        public void refresh()             // 界面元素刷新进程
+        // 监视线程管理 - 主窗口启动本进程 - 本进程通过扫描系统对应进程PID 和 monitorList里对应进程名的PID 对比 - 决定是否监视这个进程
+        public void monitorManagerThread(Object targetObject)
         {
+            Process[] scanProcess = Process.GetProcesses();     // using System.Diagnostics
 
-            return;
+            foreach (Process process in scanProcess)            // 遍历全部进程
+            {
+                lock(monitorlist)
+                {
+                    foreach (MonitorNode monitorNode in monitorlist)     // 遍历全部节点
+                    {
+                        if (monitorNode.ProcessName.Equals(process.ProcessName))        // 如果这个进程我们要监视
+                        {
+                            foreach (int processId in monitorNode.ProcessIdList)
+                            {
+                                if (processId == process.Id)        // 我们已经监视了 这个进程
+                                {
+                                    goto NEXT_NODE;
+                                }
+                            }
+                            // 没有具体监视这个进程 - 启动监视线程，同时添加监视列表
+                            ThreadPool.QueueUserWorkItem(monitorThread, process.Id);
+
+                        }
+
+                        NEXT_NODE:
+                        continue;
+                    }
+                }
+            }
         }
+
 
 
         // 窗口启动监视线程 知道监听到 我们才启动UI线程 来修改界面元素  
@@ -154,10 +190,9 @@ namespace AreYouCoding
             //this.Visibility = Visibility.Hidden;      // 初始化不可见
             InitializeComponent();
 
-            refreshThread = this.refresh;
-
             ulong monitorProcessNumber = 0;
             StringBuilder monitorProcess = new StringBuilder(255);
+            MonitorNode monitorNode = new MonitorNode();
 
             // 初始化INI文件目录
             inifilePath = System.Environment.CurrentDirectory + "\\config.ini";
@@ -184,11 +219,16 @@ namespace AreYouCoding
                 for (ulong i = 1; i <= monitorProcessNumber; i++)
                 {
                     GetPrivateProfileString("monitor", i.ToString(), null, monitorProcess, 255, inifilePath);
-                    monitorlist.addNewNode(monitorProcess.ToString());     // 添加到monitorlist 
+                    monitorNode.ProcessName = monitorProcess.ToString();
+                    monitorNode.ProcessIdList = new List<int>();
+                    monitorNode.ProcessIdList.Clear();
 
-                    System.Threading.ParameterizedThreadStart ts = new System.Threading.ParameterizedThreadStart(monitorThread);        // 主窗口启动后台扫描进程
-                    System.Threading.Thread thread = new System.Threading.Thread(ts);
-                    thread.Start(monitorProcess.ToString());        // 异步函数 程序不是会这里等待启动的线程执行完毕
+                    lock(monitorlist)       // 锁上monitor
+                    {
+                        monitorlist.addNewNode(monitorNode);     // 添加到monitorlist 
+                    }
+
+                    ThreadPool.QueueUserWorkItem(monitorManagerThread);
                 }
             }
 
@@ -232,14 +272,17 @@ namespace AreYouCoding
 
             ComboBoxItem item;
 
-            foreach (string processName in monitorlist)
+            lock(monitorlist)
             {
-                item = new ComboBoxItem();
-                item.Content = processName;
-                notifyShowBalloomTip("start monitor", "target:" + item.Content.ToString() + ".exe", 0);
-                this.detailProcessName.Items.Add(item);
+                foreach (MonitorNode monitorNode in monitorlist)
+                {
+                    item = new ComboBoxItem();
+                    item.Content = monitorNode.ProcessName;
+                    notifyShowBalloomTip("start monitor", "target:" + item.Content.ToString() + ".exe", 0);
+                    this.detailProcessName.Items.Add(item);
+                }
             }
-
+            
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -250,13 +293,14 @@ namespace AreYouCoding
             System.Environment.Exit(System.Environment.ExitCode);
         }
 
-        public bool recordRunTime(string targetProcess, string timeString, int type)
+        public bool recordRunTime(string strProcessName, int processId, string timeString, int type)
         {
             byte[] timedata;
             string transferString;
             string recordFileName;
 
-            recordFileName = recordDirectory + '\\' + targetProcess + ".txt";
+            recordFileName = recordDirectory + '\\' + strProcessName + "-" + processId.ToString() + ".txt";
+
 
 
             // 判断记录文件是否存在
@@ -318,22 +362,34 @@ namespace AreYouCoding
         {
             newMonitor newWindow = new newMonitor();
             newWindow.ShowDialog();
+            MonitorNode monitorNode = new MonitorNode();
 
             if (newWindow.monitoredProcessName == null)
             {
                 return;
             }
 
-            System.Threading.ParameterizedThreadStart ts = new System.Threading.ParameterizedThreadStart(monitorThread);        // 主窗口启动后台扫描进程
-            System.Threading.Thread thread = new System.Threading.Thread(ts);
-            thread.Start(newWindow.monitoredProcessName);
+            //System.Threading.ParameterizedThreadStart ts = new System.Threading.ParameterizedThreadStart(monitorThread);        // 主窗口启动后台扫描进程
+            //System.Threading.Thread thread = new System.Threading.Thread(ts);
+            //thread.Start(newWindow.monitoredProcessName);
 
-            // 加入monitorlist 加入combox选项 
-            monitorlist.addNewNode(newWindow.monitoredProcessName);
+            ThreadPool.QueueUserWorkItem(monitorThread, newWindow.monitoredProcessName);         // 主窗口启动后台扫描进程
+
+            //  加入combox选项
+            monitorNode.ProcessName = newWindow.monitoredProcessName;
+            monitorNode.ProcessIdList = new List<int>();
+            monitorNode.ProcessIdList.Clear();
+            
             ComboBoxItem item = new ComboBoxItem();
             item.Content = newWindow.monitoredProcessName;
             notifyShowBalloomTip("start monitor", "target:" + item.Content.ToString() + ".exe", 0);
             this.detailProcessName.Items.Add(item);
+
+            // 加入 monitorlist
+            lock(monitorlist)
+            {
+                monitorlist.addNewNode(monitorNode);
+            }
 
             return;
         }
@@ -341,8 +397,39 @@ namespace AreYouCoding
         // Combox 选中修改函数
         private void detailProcessName_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // 选中一个进程名 加载所有记录信息
             string strProcessName;
+            // 选中一个进程名 加载所有记录信息
+            ComboBoxItem item = detailProcessName.SelectedItem as ComboBoxItem;
+            if (item == null)       // 我们删除combobox项也会触发SeletedChanged
+            {
+                return;
+            }
+            strProcessName = item.Content.ToString();
+
+            DirectoryInfo directoryInfo = new DirectoryInfo(System.Environment.CurrentDirectory + "\\record");
+            FileInfo[] fileInfo = directoryInfo.GetFiles();
+
+            listviewItem.Clear();
+
+            foreach (FileInfo file in fileInfo)
+            {
+                if (string.Equals(file.Name.Substring(0, strProcessName.Length), strProcessName, StringComparison.OrdinalIgnoreCase) && 
+                    file.Name.Substring(strProcessName.Length, 1).Equals("-"))
+                {
+                    readRecordFile(file.DirectoryName + "\\" + file.Name);
+                    Thread.Sleep(100);  // 文件流 快速读取好像会出错
+                }
+            }
+
+            // 更新source 刷新列表
+            viewSource.Source = listviewItem;
+            this.listView.DataContext = viewSource;
+
+            return;
+        }
+
+        private bool readRecordFile(string recordFilePath)
+        {
             string strDate;
             string strstartingTime = "";
             string strendingTime = "";
@@ -356,36 +443,24 @@ namespace AreYouCoding
             StreamWriter streamWriter;
             List<string> txtline;
 
+            byte[] Byte;
+
             int count = 1;
             int linecount = -1;
 
-
-            ComboBoxItem item = detailProcessName.SelectedItem as ComboBoxItem;
-            if (item == null)       // 我们删除combobox项也会触发SeletedChanged
+            
+            if (IsFileExists(recordFilePath))
             {
-                return;
-            }
-            strProcessName = item.Content.ToString();
-
-            byte[] Byte;
-
-            // 清空listview
-            listviewItem.Clear();
-
-
-            if (IsFileExists(System.Environment.CurrentDirectory + "\\record\\" + strProcessName + ".txt"))
-            {
-                txtline = new List<String>(File.ReadAllLines(System.Environment.CurrentDirectory + "\\record\\" + strProcessName + ".txt"));               // 声明泛型 读取所有数据
+                txtline = new List<String>(File.ReadAllLines(recordFilePath));               // 声明泛型 读取所有数据
 
                 // 打开文件 初始化读取流
-                fs = File.Open(System.Environment.CurrentDirectory + "\\record\\" + strProcessName + ".txt", FileMode.Open, FileAccess.ReadWrite);
+                fs = File.Open(recordFilePath, FileMode.Open, FileAccess.ReadWrite);
                 streamReader = new StreamReader(fs);
-
             }
             else
             {
                 System.Windows.MessageBox.Show("record file don't exist", "Error");
-                return;
+                return false;
             }
 
             while (!streamReader.EndOfStream)
@@ -510,7 +585,7 @@ namespace AreYouCoding
             fs.Close();     // 关闭原文件
 
             // 创建新文件 覆盖旧文件
-            fs = File.Open(System.Environment.CurrentDirectory + "\\record\\" + strProcessName + ".txt", FileMode.Create, FileAccess.ReadWrite);
+            fs = File.Open(recordFilePath, FileMode.Create, FileAccess.ReadWrite);
             streamWriter = new StreamWriter(fs);
 
             // 将整理完毕的新缓存 放回文件
@@ -524,11 +599,7 @@ namespace AreYouCoding
             // 关闭新文件
             fs.Close();
 
-            // 更新source 刷新列表
-            viewSource.Source = listviewItem;
-            this.listView.DataContext = viewSource;
-
-            return;
+            return true;
         }
 
         // 托盘处理函数
@@ -556,22 +627,34 @@ namespace AreYouCoding
         {
             newMonitor newWindow = new newMonitor();
             newWindow.ShowDialog();
+            MonitorNode monitorNode = new MonitorNode();
 
             if (newWindow.monitoredProcessName == null)
             {
                 return;
             }
 
-            System.Threading.ParameterizedThreadStart ts = new System.Threading.ParameterizedThreadStart(monitorThread);        // 主窗口启动后台扫描进程
-            System.Threading.Thread thread = new System.Threading.Thread(ts);
-            thread.Start(newWindow.monitoredProcessName);                       // 启动监视线程
+            //System.Threading.ParameterizedThreadStart ts = new System.Threading.ParameterizedThreadStart(monitorThread);        // 主窗口启动后台扫描进程
+            //System.Threading.Thread thread = new System.Threading.Thread(ts);
+            //thread.Start(newWindow.monitoredProcessName);                       // 启动监视线程
 
-            // 加入monitorlist 加入combox选项 
-            monitorlist.addNewNode(newWindow.monitoredProcessName);
+            ThreadPool.QueueUserWorkItem(monitorThread, newWindow.monitoredProcessName);
+
+            // 加入combox选项
+            monitorNode.ProcessName = newWindow.monitoredProcessName;
+            monitorNode.ProcessIdList = new List<int>();
+            monitorNode.ProcessIdList.Clear();
+            
             ComboBoxItem item = new ComboBoxItem();
             item.Content = newWindow.monitoredProcessName;
             notifyShowBalloomTip("start monitor", "target:" + item.Content.ToString() + ".exe", 0);
             this.detailProcessName.Items.Add(item);
+
+            // 加入monitorlist
+            lock (monitorlist)
+            {
+                monitorlist.addNewNode(monitorNode);
+            }
 
             return;
         }
@@ -687,16 +770,19 @@ namespace AreYouCoding
             BitmapImage bm;
             Uri uri;
 
-            foreach (string processname in monitorlist)
+            lock(monitorlist)
             {
-                if (IsFileExists(resourceDirectory + "\\" + processname + ".ico"))
+                foreach (MonitorNode monitorNode in monitorlist)
                 {
-                    uri = new Uri(resourceDirectory + "\\" + processname + ".ico");
-                    bm = new BitmapImage(uri);
+                    if (IsFileExists(resourceDirectory + "\\" + monitorNode.ProcessName + ".ico"))
+                    {
+                        uri = new Uri(resourceDirectory + "\\" + monitorNode.ProcessName + ".ico");
+                        bm = new BitmapImage(uri);
 
-                    this.firstIcon.Source = bm;
+                        this.firstIcon.Source = bm;
+                    }
+
                 }
-
             }
         }
 
