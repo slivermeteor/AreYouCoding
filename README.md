@@ -1,5 +1,10 @@
 # Welcome to use AreYouCoding - Count you the time of use any software that you want to count
 
+# 2016-11-6 Commit note
+I have distinguish different process in the listview.So you can look these process's run time that have the same name.
+Next time, I will perfect the "detail dynamics" labe.I will make it can show the recent monitor process run time situation in it.
+Meanwhile, I may adjust the "detail situation" label, but I don't have a specific idea about it.So you can have a expect about it.
+
 ## Introduce
 This project is written by C#, perhaps i will add dll written by C++ to the project in the future.
 This projrct's boundary is use the WPF.

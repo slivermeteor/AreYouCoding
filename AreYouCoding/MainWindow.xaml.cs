@@ -143,8 +143,17 @@ namespace AreYouCoding
                 {
                     processTime = DateTime.Now;
 
-                    // 写入文件 记录这一次开启关闭操作 同时启动新的监视开始线程
+                    // 写入文件 记录这一次开启关闭操作 
                     recordRunTime(strProcessName, processId, processTime.ToString(), 2);
+                    // 从monitorlist里删除本进程DI
+                    foreach (MonitorNode monitorNode in monitorlist)     // 遍历全部节点
+                    {
+                        if (monitorNode.ProcessName.Equals(targetProcess.ProcessName))        // 找个进程对应的节点
+                        {
+                            monitorNode.ProcessIdList.RemoveAt(monitorNode.ProcessIdList.IndexOf(processId));   // 删除对应的 PID Node
+                        }
+                    }
+                       
                     return;
                 }
             }
@@ -172,6 +181,7 @@ namespace AreYouCoding
                             }
                             // 没有具体监视这个进程 - 启动监视线程，同时添加监视列表
                             ThreadPool.QueueUserWorkItem(monitorThread, process.Id);
+                            monitorNode.ProcessIdList.Add(process.Id);
 
                         }
 
@@ -373,8 +383,6 @@ namespace AreYouCoding
             //System.Threading.Thread thread = new System.Threading.Thread(ts);
             //thread.Start(newWindow.monitoredProcessName);
 
-            ThreadPool.QueueUserWorkItem(monitorThread, newWindow.monitoredProcessName);         // 主窗口启动后台扫描进程
-
             //  加入combox选项
             monitorNode.ProcessName = newWindow.monitoredProcessName;
             monitorNode.ProcessIdList = new List<int>();
@@ -416,8 +424,10 @@ namespace AreYouCoding
                 if (string.Equals(file.Name.Substring(0, strProcessName.Length), strProcessName, StringComparison.OrdinalIgnoreCase) && 
                     file.Name.Substring(strProcessName.Length, 1).Equals("-"))
                 {
-                    readRecordFile(file.DirectoryName + "\\" + file.Name);
-                    Thread.Sleep(100);  // 文件流 快速读取好像会出错
+                    readRecordFile(file.DirectoryName + "\\" + file.Name, strProcessName,
+                                   "PID:" + file.Name.Substring(strProcessName.Length + 1, file.Name.LastIndexOf('.') - strProcessName.Length - 1));
+
+                    Thread.Sleep(10);  // 文件流 快速读取好像会出错
                 }
             }
 
@@ -428,7 +438,7 @@ namespace AreYouCoding
             return;
         }
 
-        private bool readRecordFile(string recordFilePath)
+        private bool readRecordFile(string recordFilePath, string processName, string proessId)
         {
             string strDate;
             string strstartingTime = "";
@@ -462,6 +472,15 @@ namespace AreYouCoding
                 System.Windows.MessageBox.Show("record file don't exist", "Error");
                 return false;
             }
+
+            // 得到这个进程ID 单独插入一行 来区分
+            listviewItem.Add(new listviewItem()
+            {
+                count = proessId,
+                startingTime = null,
+                endingTime = null,
+                runningTime = null
+            });
 
             while (!streamReader.EndOfStream)
             {
@@ -507,7 +526,7 @@ namespace AreYouCoding
                         {
                             listviewItem.Add(new listviewItem()         // 说明当前读到的启动时间没有对应的结束时间 将其放入listview 然后将读到新的启动时间更新
                             {
-                                count = count,
+                                count = count.ToString(),
                                 startingTime = strstartingTime,
                                 endingTime = null,
                                 runningTime = "error ending"
@@ -539,7 +558,7 @@ namespace AreYouCoding
                         // 把前一个当异常处理掉
                         listviewItem.Add(new listviewItem()
                         {
-                            count = count,
+                            count = count.ToString(),
                             startingTime = strstartingTime,
                             endingTime = null,
                             runningTime = "error ending"
@@ -559,7 +578,7 @@ namespace AreYouCoding
 
                     listviewItem.Add(new listviewItem()
                     {
-                        count = count,
+                        count = count.ToString(),
                         startingTime = strstartingTime,
                         endingTime = strendingTime,
                         runningTime = tsrunningTime.ToString()
@@ -567,16 +586,39 @@ namespace AreYouCoding
 
                     count++;
                 }
-                else   // 异常处理 没有读取到结束时间
+                else   // 异常处理 没有读取到结束时间 - 那么是已经异常退出 / 还在运行
                 {
+
+                    foreach (MonitorNode monitorNode in monitorlist)     // 遍历全部节点
+                    {
+                        if (monitorNode.ProcessName.Equals(processName))        // 是我们正在监视的进程
+                        {
+                            foreach (int processID in monitorNode.ProcessIdList)    // 这个PID是否还在监视 ?
+                            {
+                                if (processID == int.Parse(proessId.Substring(4)))
+                                {
+                                    listviewItem.Add(new listviewItem()
+                                    {
+                                        count = count.ToString(),
+                                        startingTime = strstartingTime,
+                                        endingTime = null,
+                                        runningTime = "still running"
+                                    });
+                                    goto NEXT;
+                                }
+                            }
+                        }
+                    }
+
                     listviewItem.Add(new listviewItem()
                     {
-                        count = count,
+                        count = count.ToString(),
                         startingTime = strstartingTime,
                         endingTime = null,
-                        runningTime = "still running"
+                        runningTime = "error ending"
                     });
 
+                    NEXT:
                     count++;
                 }
 
@@ -637,8 +679,6 @@ namespace AreYouCoding
             //System.Threading.ParameterizedThreadStart ts = new System.Threading.ParameterizedThreadStart(monitorThread);        // 主窗口启动后台扫描进程
             //System.Threading.Thread thread = new System.Threading.Thread(ts);
             //thread.Start(newWindow.monitoredProcessName);                       // 启动监视线程
-
-            ThreadPool.QueueUserWorkItem(monitorThread, newWindow.monitoredProcessName);
 
             // 加入combox选项
             monitorNode.ProcessName = newWindow.monitoredProcessName;
@@ -738,7 +778,7 @@ namespace AreYouCoding
                 System.Windows.MessageBox.Show("未选中条目");
                 return;
             }
-            listviewItem.Clear();
+            
         }
 
         // 退出
@@ -914,7 +954,7 @@ namespace AreYouCoding
 
     public class listviewItem
     {
-        public int count { get; set; }
+        public string count { get; set; }
         public string startingTime { get; set; }
         public string endingTime { get; set; }
         public string runningTime { get; set; }

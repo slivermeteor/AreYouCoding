@@ -31,10 +31,10 @@
                             <Image Height="23" Width="40" Name="deleteImage" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="0,-2,0,0"/>
                         </Grid>
                     </Button>
-                    <ListView HorizontalAlignment="Stretch" Margin="0,29,0,0" Name="listView" VerticalAlignment="Stretch" ItemsSource="{Binding}" HorizontalContentAlignment="Left" Grid.ColumnSpan="2" >
+                    <ListView HorizontalAlignment="Stretch" Name="listView" ItemsSource="{Binding}" HorizontalContentAlignment="Left" Margin="0,29,0,0" >
                         <ListView.View>
                             <GridView>
-                                <GridViewColumn Header="Count" DisplayMemberBinding="{Binding count}" Width="50" />
+                                <GridViewColumn Header="Identification" DisplayMemberBinding="{Binding count}" Width="80" />
                                 <GridViewColumn Header="Starting Time" DisplayMemberBinding="{Binding startingTime}" Width="150"/>
                                 <GridViewColumn Header="Ending Time" DisplayMemberBinding="{Binding endingTime}" Width="150" />
                                 <GridViewColumn Header="Running Time" DisplayMemberBinding="{Binding runningTime}" Width="150" />
