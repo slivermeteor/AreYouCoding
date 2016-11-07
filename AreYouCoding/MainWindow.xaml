@@ -1,13 +1,36 @@
 ﻿<Window x:Class="AreYouCoding.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="350" Width="525" Closing="Window_Closing" Loaded="Window_Loaded">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition Width="0*"/>
-        </Grid.ColumnDefinitions>
-        <TabControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Name="tabControl" >
+        Title="AreYouCoding" Height="387" Width="593" Closing="Window_Closing" Loaded="Window_Loaded">
+    <Grid x:Name="mainGrid"  Height="{Binding ActualHeight, ElementName=MainWindow, Mode=OneWay}">
+        <Grid.RowDefinitions>
+
+
+        </Grid.RowDefinitions>
+
+        <!-- 顶部菜单栏 -->
+        <DockPanel VerticalAlignment="Top" Height="50" Background="#2B2B2B">
+            <Menu DockPanel.Dock="Top" Height="20" Background="#2B2B2B">
+                <MenuItem Header="Start" Foreground="White">
+                    <MenuItem Header="NewMonitor" Background="#2B2B2B" BorderThickness="0.5"></MenuItem>
+                    <MenuItem Header="MonitorList" Background="#2B2B2B" BorderThickness="0.5"></MenuItem>
+
+                </MenuItem>
+            </Menu>
+
+            <ToolBar Height="30" Margin="0, 0, 0, 0">
+                <Button>
+                    <Image Source="resource/plus.ico"></Image>
+                </Button>
+            </ToolBar>
+        </DockPanel>
+
+
+
+        <!-- 工具栏 -->
+
+        <!-- 主标签栏 -->
+        <TabControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Name="tabControl" Margin="0,50,0,0" >
             <TabItem Name="dynamics" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                 <TabItem.Header>
                     <Label Content="Detail dynamics" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MouseLeftButtonDown="Dynamics_MouseLeftButtonDown" FontSize="12"/>
@@ -24,14 +47,14 @@
                     <Label Content="Detail situation" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MouseLeftButtonDown="Situation_MouseLeftButtonDown" FontSize="12" />
                 </TabItem.Header>
                 <Grid>
-                    <ComboBox Height="23" HorizontalAlignment="Left" Name="detailProcessName" VerticalAlignment="Top" Width="120" SelectionChanged="detailProcessName_SelectionChanged"/>
-                    <Button Height="23" Width="100" HorizontalAlignment="Right" Margin="0,0,20,0" Name="deleteMonitor" VerticalAlignment="Top" Click="deleteMonitor_Click">
+                    <ComboBox Height="23" HorizontalAlignment="Left" Name="detailProcessName" VerticalAlignment="Top" Width="120" SelectionChanged="detailProcessName_SelectionChanged" Grid.ColumnSpan="2"/>
+                    <Button Height="23" Width="100" HorizontalAlignment="Right" Margin="0,0,20,0" Name="deleteMonitor" VerticalAlignment="Top" Click="deleteMonitor_Click" Grid.Column="1">
                         <Grid Width="100" Height="23" VerticalAlignment="Top">
                             <Label FontSize="11" Height="23" Width="60" Content="delete" VerticalAlignment="Top" HorizontalAlignment="center" HorizontalContentAlignment="Center" Margin="0,-2,0,0"/>
                             <Image Height="23" Width="40" Name="deleteImage" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="0,-2,0,0"/>
                         </Grid>
                     </Button>
-                    <ListView HorizontalAlignment="Stretch" Name="listView" ItemsSource="{Binding}" HorizontalContentAlignment="Left" Margin="0,29,0,0" >
+                    <ListView HorizontalAlignment="Stretch" Name="listView" ItemsSource="{Binding}" HorizontalContentAlignment="Left" Margin="0,29,0,0" Grid.ColumnSpan="2" >
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn Header="Identification" DisplayMemberBinding="{Binding count}" Width="80" />
