@@ -37,6 +37,7 @@ namespace AreYouCoding
 
     public partial class MainWindow : Window
     {
+        // 类成员变量定义
         public delegate void delegateRefreshThread();     // 后台进程 委托数据类型
         public delegateRefreshThread refreshThread;                 // 委托实例
 
@@ -46,7 +47,7 @@ namespace AreYouCoding
         private FileStream recordFileStream;
 
         private CollectionViewSource viewSource = new CollectionViewSource();                               // listview source
-        private ObservableCollection<listviewItem> listviewItem = new ObservableCollection<listviewItem>(); // item数据结构
+        private ObservableCollection<DataGridItem> DataGridItems = new ObservableCollection<DataGridItem>(); // item数据结构
 
         private NotifyIcon notifyIcon;
         private monitorList<MonitorNode> monitorlist = new monitorList<MonitorNode>();
@@ -62,6 +63,149 @@ namespace AreYouCoding
         [DllImport("Kernel32")]
         private static extern ulong GetPrivateProfileInt(string section, string key, int defaultValue, string filePath);
         #endregion
+
+        // 窗口启动监视线程 知道监听到 我们才启动UI线程 来修改界面元素  
+        public MainWindow()
+        {
+            //this.Visibility = Visibility.Hidden;      // 初始化不可见
+            InitializeComponent();
+
+            ulong monitorProcessNumber = 0;
+            StringBuilder monitorProcess = new StringBuilder(255);
+            MonitorNode monitorNode = new MonitorNode();
+
+            // 初始化INI文件目录
+            inifilePath = System.Environment.CurrentDirectory + "\\config.ini";
+
+            // 记录文件夹
+            recordDirectory = System.Environment.CurrentDirectory;
+            recordDirectory += "\\record";      // 注意最后没有\\
+
+            resourceDirectory = System.Environment.CurrentDirectory;
+            resourceDirectory += "\\resource";
+
+            if (!IsDirectoryExists(recordDirectory))        // 记录文件夹不存在 创建文件夹
+            {
+                Directory.CreateDirectory(recordDirectory);
+            }
+
+            // 读取要监视的进程名 --- 读取ini文件 monitor节
+            if (IsFileExists(inifilePath))  // 判断监视文件存在吗
+            {
+                // 读取 number节的值
+                monitorProcessNumber = GetPrivateProfileInt("monitor", "number", 0, inifilePath);
+
+                // 遍历 数字节 得到各个监控进程名 不包含extension 
+                for (ulong i = 1; i <= monitorProcessNumber; i++)
+                {
+                    GetPrivateProfileString("monitor", i.ToString(), null, monitorProcess, 255, inifilePath);
+                    monitorNode.ProcessName = monitorProcess.ToString();
+                    monitorNode.ProcessIdList = new List<int>();
+                    monitorNode.ProcessIdList.Clear();
+
+                    lock (monitorlist)       // 锁上monitor
+                    {
+                        monitorlist.addNewNode(monitorNode);     // 添加到monitorlist 
+                    }
+
+                    ThreadPool.QueueUserWorkItem(monitorManagerThread);
+                }
+            }
+
+            // 设置托盘 
+            notifyIcon = new NotifyIcon();
+            notifyIcon.Text = "monitor";        // 停留显示
+            notifyIcon.Icon = System.Drawing.Icon.ExtractAssociatedIcon(System.Windows.Forms.Application.ExecutablePath);
+            notifyIcon.Visible = true;
+            notifyIcon.MouseClick += new System.Windows.Forms.MouseEventHandler(notify_MouseClick);
+
+            // 右键菜单构造和处理函数添加
+            System.Windows.Forms.MenuItem menuItem1 = new System.Windows.Forms.MenuItem("new monitor");
+            menuItem1.Click += new EventHandler(notifyNewmonitor_Click);
+            System.Windows.Forms.MenuItem menuItem2 = new System.Windows.Forms.MenuItem("detail dynamics");
+            menuItem2.Click += new EventHandler(notifyDynamics_Click);
+            System.Windows.Forms.MenuItem menuItem3 = new System.Windows.Forms.MenuItem("exit");
+            menuItem3.Click += new EventHandler(notifyExit_Click);
+
+            // 菜单和托盘绑定
+            System.Windows.Forms.MenuItem[] notifyMenu = new System.Windows.Forms.MenuItem[] { menuItem1, menuItem2, menuItem3 };
+            notifyIcon.ContextMenu = new System.Windows.Forms.ContextMenu(notifyMenu);
+
+            // 读取ini文件 config 设置 setting 下各个设置的状态
+
+            // 读取开启启动项的状态
+            ulong bStartInBoot = GetPrivateProfileInt("config", "StartInBoot", 0, inifilePath);
+            if (bStartInBoot == 0)
+            {
+                this.IsStartInBoot.IsChecked = false;
+            }
+            else
+            {
+                this.IsStartInBoot.IsChecked = true;
+            }
+
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            //窗口加载完成 读取记录文件里的监视进程名 添加到Combobox中 
+
+            ComboBoxItem item;
+
+            lock (monitorlist)
+            {
+                foreach (MonitorNode monitorNode in monitorlist)
+                {
+                    item = new ComboBoxItem();
+                    item.Content = monitorNode.ProcessName;
+                    notifyShowBalloomTip("start monitor", "target:" + item.Content.ToString() + ".exe", 0);
+                    this.detailProcessName.Items.Add(item);
+                }
+            }
+
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            notifyIcon.Dispose();
+
+            // 结束所有线程
+            System.Environment.Exit(System.Environment.ExitCode);
+        }
+
+        // 监视线程
+        // 监视线程管理 - 主窗口启动本进程 - 本进程通过扫描系统对应进程PID 和 monitorList里对应进程名的PID 对比 - 决定是否监视这个进程
+        public void monitorManagerThread(Object targetObject)
+        {
+            Process[] scanProcess = Process.GetProcesses();     // using System.Diagnostics
+
+            foreach (Process process in scanProcess)            // 遍历全部进程
+            {
+                lock (monitorlist)
+                {
+                    foreach (MonitorNode monitorNode in monitorlist)     // 遍历全部节点
+                    {
+                        if (monitorNode.ProcessName.Equals(process.ProcessName))        // 如果这个进程我们要监视
+                        {
+                            foreach (int processId in monitorNode.ProcessIdList)
+                            {
+                                if (processId == process.Id)        // 我们已经监视了 这个进程
+                                {
+                                    goto NEXT_NODE;
+                                }
+                            }
+                            // 没有具体监视这个进程 - 启动监视线程，同时添加监视列表
+                            ThreadPool.QueueUserWorkItem(monitorThread, process.Id);
+                            monitorNode.ProcessIdList.Add(process.Id);
+
+                        }
+
+                        NEXT_NODE:
+                        continue;
+                    }
+                }
+            }
+        }
 
         public void monitorThread(Object targetObject)        // 后台监视线程 不会阻塞界面
         {
@@ -159,149 +303,9 @@ namespace AreYouCoding
             }
         }
 
-        // 监视线程管理 - 主窗口启动本进程 - 本进程通过扫描系统对应进程PID 和 monitorList里对应进程名的PID 对比 - 决定是否监视这个进程
-        public void monitorManagerThread(Object targetObject)
-        {
-            Process[] scanProcess = Process.GetProcesses();     // using System.Diagnostics
-
-            foreach (Process process in scanProcess)            // 遍历全部进程
-            {
-                lock(monitorlist)
-                {
-                    foreach (MonitorNode monitorNode in monitorlist)     // 遍历全部节点
-                    {
-                        if (monitorNode.ProcessName.Equals(process.ProcessName))        // 如果这个进程我们要监视
-                        {
-                            foreach (int processId in monitorNode.ProcessIdList)
-                            {
-                                if (processId == process.Id)        // 我们已经监视了 这个进程
-                                {
-                                    goto NEXT_NODE;
-                                }
-                            }
-                            // 没有具体监视这个进程 - 启动监视线程，同时添加监视列表
-                            ThreadPool.QueueUserWorkItem(monitorThread, process.Id);
-                            monitorNode.ProcessIdList.Add(process.Id);
-
-                        }
-
-                        NEXT_NODE:
-                        continue;
-                    }
-                }
-            }
-        }
+  
 
 
-
-        // 窗口启动监视线程 知道监听到 我们才启动UI线程 来修改界面元素  
-        public MainWindow()
-        {
-            //this.Visibility = Visibility.Hidden;      // 初始化不可见
-            InitializeComponent();
-
-            ulong monitorProcessNumber = 0;
-            StringBuilder monitorProcess = new StringBuilder(255);
-            MonitorNode monitorNode = new MonitorNode();
-
-            // 初始化INI文件目录
-            inifilePath = System.Environment.CurrentDirectory + "\\config.ini";
-
-            // 记录文件夹
-            recordDirectory = System.Environment.CurrentDirectory;
-            recordDirectory += "\\record";      // 注意最后没有\\
-
-            resourceDirectory = System.Environment.CurrentDirectory;
-            resourceDirectory += "\\resource";
-
-            if (!IsDirectoryExists(recordDirectory))        // 记录文件夹不存在 创建文件夹
-            {
-                Directory.CreateDirectory(recordDirectory);
-            }
-
-            // 读取要监视的进程名 --- 读取ini文件 monitor节
-            if (IsFileExists(inifilePath))  // 判断监视文件存在吗
-            {
-                // 读取 number节的值
-                monitorProcessNumber = GetPrivateProfileInt("monitor", "number", 0, inifilePath);
-
-                // 遍历 数字节 得到各个监控进程名 不包含extension 
-                for (ulong i = 1; i <= monitorProcessNumber; i++)
-                {
-                    GetPrivateProfileString("monitor", i.ToString(), null, monitorProcess, 255, inifilePath);
-                    monitorNode.ProcessName = monitorProcess.ToString();
-                    monitorNode.ProcessIdList = new List<int>();
-                    monitorNode.ProcessIdList.Clear();
-
-                    lock(monitorlist)       // 锁上monitor
-                    {
-                        monitorlist.addNewNode(monitorNode);     // 添加到monitorlist 
-                    }
-
-                    ThreadPool.QueueUserWorkItem(monitorManagerThread);
-                }
-            }
-
-            // 设置托盘 
-            notifyIcon = new NotifyIcon();
-            notifyIcon.Text = "monitor";        // 停留显示
-            notifyIcon.Icon = System.Drawing.Icon.ExtractAssociatedIcon(System.Windows.Forms.Application.ExecutablePath);
-            notifyIcon.Visible = true;
-            notifyIcon.MouseClick += new System.Windows.Forms.MouseEventHandler(notify_MouseClick);
-
-            // 右键菜单构造和处理函数添加
-            System.Windows.Forms.MenuItem menuItem1 = new System.Windows.Forms.MenuItem("new monitor");
-            menuItem1.Click += new EventHandler(notifyNewmonitor_Click);
-            System.Windows.Forms.MenuItem menuItem2 = new System.Windows.Forms.MenuItem("detail dynamics");
-            menuItem2.Click += new EventHandler(notifyDynamics_Click);
-            System.Windows.Forms.MenuItem menuItem3 = new System.Windows.Forms.MenuItem("exit");
-            menuItem3.Click += new EventHandler(notifyExit_Click);
-
-            // 菜单和托盘绑定
-            System.Windows.Forms.MenuItem[] notifyMenu = new System.Windows.Forms.MenuItem[] { menuItem1, menuItem2, menuItem3 };
-            notifyIcon.ContextMenu = new System.Windows.Forms.ContextMenu(notifyMenu);
-
-            // 读取ini文件 config 设置 setting 下各个设置的状态
-
-            // 读取开启启动项的状态
-            ulong bStartInBoot = GetPrivateProfileInt("config", "StartInBoot", 0, inifilePath);
-            if (bStartInBoot == 0)
-            {
-                this.IsStartInBoot.IsChecked = false;
-            }
-            else
-            {
-                this.IsStartInBoot.IsChecked = true;
-            }
-
-        }
-
-        private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            //窗口加载完成 读取记录文件里的监视进程名 添加到Combobox中 
-
-            ComboBoxItem item;
-
-            lock(monitorlist)
-            {
-                foreach (MonitorNode monitorNode in monitorlist)
-                {
-                    item = new ComboBoxItem();
-                    item.Content = monitorNode.ProcessName;
-                    notifyShowBalloomTip("start monitor", "target:" + item.Content.ToString() + ".exe", 0);
-                    this.detailProcessName.Items.Add(item);
-                }
-            }
-            
-        }
-
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            notifyIcon.Dispose();
-
-            // 结束所有线程
-            System.Environment.Exit(System.Environment.ExitCode);
-        }
 
         public bool recordRunTime(string strProcessName, int processId, string timeString, int type)
         {
@@ -417,7 +421,7 @@ namespace AreYouCoding
             DirectoryInfo directoryInfo = new DirectoryInfo(System.Environment.CurrentDirectory + "\\record");
             FileInfo[] fileInfo = directoryInfo.GetFiles();
 
-            listviewItem.Clear();
+            DataGridItems.Clear();
 
             foreach (FileInfo file in fileInfo)
             {
@@ -432,8 +436,9 @@ namespace AreYouCoding
             }
 
             // 更新source 刷新列表
-            viewSource.Source = listviewItem;
-            this.listView.DataContext = viewSource;
+            viewSource.Source = DataGridItems;
+            runTimeList.DataContext = viewSource;
+
 
             return;
         }
@@ -474,7 +479,7 @@ namespace AreYouCoding
             }
 
             // 得到这个进程ID 单独插入一行 来区分
-            listviewItem.Add(new listviewItem()
+            DataGridItems.Add(new DataGridItem()
             {
                 count = proessId,
                 startingTime = null,
@@ -524,7 +529,7 @@ namespace AreYouCoding
                         }
                         else        // 不匹配 - 在监视程序结束的时间里 对方关闭 这种异常 给用户自己添加结束时间的权利
                         {
-                            listviewItem.Add(new listviewItem()         // 说明当前读到的启动时间没有对应的结束时间 将其放入listview 然后将读到新的启动时间更新
+                            DataGridItems.Add(new DataGridItem()         // 说明当前读到的启动时间没有对应的结束时间 将其放入listview 然后将读到新的启动时间更新
                             {
                                 count = count.ToString(),
                                 startingTime = strstartingTime,
@@ -556,7 +561,7 @@ namespace AreYouCoding
                     else  // 没有得到到结束时间 但是是两个不同的开始时间说明前一个是异常时间 后一个仍在监视
                     {
                         // 把前一个当异常处理掉
-                        listviewItem.Add(new listviewItem()
+                        DataGridItems.Add(new DataGridItem()
                         {
                             count = count.ToString(),
                             startingTime = strstartingTime,
@@ -576,7 +581,7 @@ namespace AreYouCoding
                     endTime = DateTime.Parse(strendingTime);
                     tsrunningTime = endTime - startTime;
 
-                    listviewItem.Add(new listviewItem()
+                    DataGridItems.Add(new DataGridItem()
                     {
                         count = count.ToString(),
                         startingTime = strstartingTime,
@@ -597,7 +602,7 @@ namespace AreYouCoding
                             {
                                 if (processID == int.Parse(proessId.Substring(4)))
                                 {
-                                    listviewItem.Add(new listviewItem()
+                                    DataGridItems.Add(new DataGridItem()
                                     {
                                         count = count.ToString(),
                                         startingTime = strstartingTime,
@@ -610,7 +615,7 @@ namespace AreYouCoding
                         }
                     }
 
-                    listviewItem.Add(new listviewItem()
+                    DataGridItems.Add(new DataGridItem()
                     {
                         count = count.ToString(),
                         startingTime = strstartingTime,
@@ -709,15 +714,15 @@ namespace AreYouCoding
         private void deleteItem_Click(object sender, RoutedEventArgs e)
         {
             // 拷贝一份listView
-            ObservableCollection<listviewItem> temp = new ObservableCollection<listviewItem>(listviewItem);
+            ObservableCollection<DataGridItem> temp = new ObservableCollection<DataGridItem>(DataGridItems);
 
-            int index = listView.SelectedIndex;
+            int index = runTimeList.SelectedIndex;
             if (index == -1)
             {
                 System.Windows.MessageBox.Show("未选中条目");
                 return;
             }
-            listviewItem.Clear();
+            DataGridItems.Clear();
             temp.RemoveAt(index);
 
             // 修改文件
@@ -759,9 +764,9 @@ namespace AreYouCoding
             }
 
             // 将temp送回ListviewItem 然后更新列表
-            listviewItem = temp;
-            viewSource.Source = listviewItem;
-            this.listView.DataContext = viewSource;
+            DataGridItems = temp;
+            viewSource.Source = DataGridItems;
+            runTimeList.DataContext = viewSource;
 
             return;
         }
@@ -770,9 +775,9 @@ namespace AreYouCoding
         private void correctItem_Click(object sender, RoutedEventArgs e)
         {
             // 拷贝一份listView
-            ObservableCollection<listviewItem> temp = new ObservableCollection<listviewItem>(listviewItem);
+            ObservableCollection<DataGridItem> temp = new ObservableCollection<DataGridItem>(DataGridItems);
 
-            int index = listView.SelectedIndex;
+            int index = runTimeList.SelectedIndex;
             if (index == -1)
             {
                 System.Windows.MessageBox.Show("未选中条目");
@@ -940,19 +945,18 @@ namespace AreYouCoding
                 System.Windows.MessageBox.Show("revise monitor number failed");
             }
 
+            // 从监视列表中删除
+
             // 清空list
-            listviewItem.Clear();
-            viewSource.Source = listviewItem;
-            this.listView.DataContext = viewSource;
+            DataGridItems.Clear();
+            viewSource.Source = DataGridItems;
+            runTimeList.DataContext = viewSource;
 
         }
-
-
-
-
     }
 
-    public class listviewItem
+    // 扩展资源类
+    public class DataGridItem
     {
         public string count { get; set; }
         public string startingTime { get; set; }
