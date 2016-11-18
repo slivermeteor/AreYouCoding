@@ -50,10 +50,11 @@
                             <Image Height="23" Width="40" Name="deleteImage" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="0,-2,0,0"/>
                         </Grid>
                     </Button>
-                    <DataGrid HorizontalAlignment="Stretch" Name="runTimeList" ItemsSource="{Binding}" HorizontalContentAlignment="Left" Margin="0,28,0,0" Grid.ColumnSpan="2" >
+
+                    <DataGrid HorizontalAlignment="Stretch" x:Name="runTimeList" ItemsSource="{Binding}" Margin="0,28,0,0" Grid.ColumnSpan="2" CanUserSortColumns="False" CanUserReorderColumns="False" AutoGenerateColumns="False">
                         
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Identification" Binding="{Binding count}" Width="100" />
+                            <DataGridTextColumn Header="Identification" Binding="{Binding Identification}" Width="100" />
                             <DataGridTextColumn Header="Starting Time" Binding="{Binding startingTime}" Width="180"/>
                             <DataGridTextColumn Header="Ending Time" Binding="{Binding endingTime}" Width="180" />
                             <DataGridTextColumn Header="Running Time" Binding="{Binding runningTime}" Width="180" />
@@ -102,7 +103,6 @@
             </StatusBarItem>
             
 
-            
         </StatusBar>
     </Grid>
 </Window>

@@ -431,14 +431,12 @@ namespace AreYouCoding
                     readRecordFile(file.DirectoryName + "\\" + file.Name, strProcessName,
                                    "PID:" + file.Name.Substring(strProcessName.Length + 1, file.Name.LastIndexOf('.') - strProcessName.Length - 1));
 
-                    Thread.Sleep(10);  // 文件流 快速读取好像会出错
+                    Thread.Sleep(10);  // 文件流 快速读取会出错
                 }
             }
 
             // 更新source 刷新列表
-            viewSource.Source = DataGridItems;
-            runTimeList.DataContext = viewSource;
-
+            runTimeList.DataContext = DataGridItems;
 
             return;
         }
@@ -481,7 +479,7 @@ namespace AreYouCoding
             // 得到这个进程ID 单独插入一行 来区分
             DataGridItems.Add(new DataGridItem()
             {
-                count = proessId,
+                Identification = proessId,
                 startingTime = null,
                 endingTime = null,
                 runningTime = null
@@ -531,7 +529,7 @@ namespace AreYouCoding
                         {
                             DataGridItems.Add(new DataGridItem()         // 说明当前读到的启动时间没有对应的结束时间 将其放入listview 然后将读到新的启动时间更新
                             {
-                                count = count.ToString(),
+                                Identification = count.ToString(),
                                 startingTime = strstartingTime,
                                 endingTime = null,
                                 runningTime = "error ending"
@@ -563,7 +561,7 @@ namespace AreYouCoding
                         // 把前一个当异常处理掉
                         DataGridItems.Add(new DataGridItem()
                         {
-                            count = count.ToString(),
+                            Identification = count.ToString(),
                             startingTime = strstartingTime,
                             endingTime = null,
                             runningTime = "error ending"
@@ -583,7 +581,7 @@ namespace AreYouCoding
 
                     DataGridItems.Add(new DataGridItem()
                     {
-                        count = count.ToString(),
+                        Identification = count.ToString(),
                         startingTime = strstartingTime,
                         endingTime = strendingTime,
                         runningTime = tsrunningTime.ToString()
@@ -604,7 +602,7 @@ namespace AreYouCoding
                                 {
                                     DataGridItems.Add(new DataGridItem()
                                     {
-                                        count = count.ToString(),
+                                        Identification = count.ToString(),
                                         startingTime = strstartingTime,
                                         endingTime = null,
                                         runningTime = "still running"
@@ -617,7 +615,7 @@ namespace AreYouCoding
 
                     DataGridItems.Add(new DataGridItem()
                     {
-                        count = count.ToString(),
+                        Identification = count.ToString(),
                         startingTime = strstartingTime,
                         endingTime = null,
                         runningTime = "error ending"
@@ -958,7 +956,7 @@ namespace AreYouCoding
     // 扩展资源类
     public class DataGridItem
     {
-        public string count { get; set; }
+        public string Identification { get; set; }
         public string startingTime { get; set; }
         public string endingTime { get; set; }
         public string runningTime { get; set; }
