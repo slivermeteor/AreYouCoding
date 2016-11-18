@@ -20,7 +20,6 @@ using System.Drawing;           // 项目添加引用
 using System.Windows.Forms;     // 项目添加引用
 using System.Runtime.InteropServices;
 using System.Text;              // StringBuilder
-using System.Security.Principal;
 
 
 namespace AreYouCoding
@@ -421,7 +420,7 @@ namespace AreYouCoding
         // 点击 dynamics tabitem 响应函数
         private void Dynamics_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-
+            this.detailProcessName.Visibility = Visibility.Hidden;
             BitmapImage bm;
             Uri uri;
 
@@ -449,7 +448,13 @@ namespace AreYouCoding
             bitmap.UriSource = new Uri(Environment.CurrentDirectory + "\\resource\\Trash.png", UriKind.RelativeOrAbsolute);
             bitmap.EndInit();
 
-            deleteImage.Source = bitmap;
+            // 显示下拉框
+            this.detailProcessName.Visibility = Visibility.Visible;
+        }
+
+        private void Setting_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            this.detailProcessName.Visibility = Visibility.Hidden;
         }
     }
 

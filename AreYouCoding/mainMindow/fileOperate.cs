@@ -63,8 +63,6 @@ namespace AreYouCoding
 
             recordFileName = recordDirectory + '\\' + strProcessName + "-" + processId.ToString() + ".txt";
 
-
-
             // 判断记录文件是否存在
             if (!IsFileExists(recordFileName))
             {
@@ -88,7 +86,7 @@ namespace AreYouCoding
             return true;
         }
 
-        private bool readRecordFile(string recordFilePath, string processName, string proessId)
+        private bool writeRecordFile(string recordFilePath, string processName, string processId)
         {
             string strDate;
             string strstartingTime = "";
@@ -124,13 +122,7 @@ namespace AreYouCoding
             }
 
             // 得到这个进程ID 单独插入一行 来区分
-            DataGridItems.Add(new DataGridItem()
-            {
-                Identification = proessId,
-                startingTime = null,
-                endingTime = null,
-                runningTime = null
-            });
+            addNewItem(processId, null, null, null);
 
             while (!streamReader.EndOfStream)
             {
@@ -228,7 +220,7 @@ namespace AreYouCoding
                         {
                             foreach (int processID in monitorNode.ProcessIdList)    // 这个PID是否还在监视 ?
                             {
-                                if (processID == int.Parse(proessId.Substring(4)))
+                                if (processID == int.Parse(processId.Substring(4)))
                                 {
                                     addNewItem(count.ToString(), strstartingTime, null, "still running");
                                     goto NEXT;

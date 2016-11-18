@@ -16,11 +16,17 @@ namespace AreYouCoding
 {
     public partial class MainWindow : Window
     {
-        // 删除监视按钮 - 将来将集成到工具栏
+        // 删除监视
         private void deleteMonitor_Click(object sender, RoutedEventArgs e)
         {
             // 移除combox选项
+            if (detailProcessName.SelectedItem == null)
+            {
+                MessageBox.Show("请选择一个监视进程", "警告");
+                return;
+            }
             string deleteProcessName = (string)((ComboBoxItem)detailProcessName.SelectedItem).Content;      // 保存string
+
             detailProcessName.Items.RemoveAt(detailProcessName.SelectedIndex);
 
             // 修改ini文件
@@ -101,7 +107,7 @@ namespace AreYouCoding
                 if (string.Equals(file.Name.Substring(0, strProcessName.Length), strProcessName, StringComparison.OrdinalIgnoreCase) &&
                     file.Name.Substring(strProcessName.Length, 1).Equals("-"))
                 {
-                    readRecordFile(file.DirectoryName + "\\" + file.Name, strProcessName,
+                    writeRecordFile(file.DirectoryName + "\\" + file.Name, strProcessName,
                                    "PID:" + file.Name.Substring(strProcessName.Length + 1, file.Name.LastIndexOf('.') - strProcessName.Length - 1));
 
                     Thread.Sleep(10);  // 文件流 快速读取会出错
@@ -111,6 +117,22 @@ namespace AreYouCoding
             // 更新source 刷新列表
             runTimeList.DataContext = DataGridItems;
 
+            // 计算总时间 更新StatusBar
+            // ---> 想法预留 把过去遗留的文件合并 软件多次开启 肯定会残留大量短小文件 到一定程度 应该把他们合并 
+            // - 合并只保留这几个文件里记录的总运行时间 放入一个文件 进程名-Old.txt
+
+            TimeSpan TempTime;
+            TimeSpan AllRunningTime = new TimeSpan();
+
+            foreach (DataGridItem Temp in DataGridItems)
+            {
+                if (Temp.runningTime == null || Temp.runningTime == "error ending" || Temp.runningTime == "still running")
+                    continue;
+                TempTime = TimeSpan.Parse(Temp.runningTime);
+                AllRunningTime += TempTime;
+            }
+
+            this.runningTime.Text = "已经运行: " + AllRunningTime.ToString();
             return;
         }
 
