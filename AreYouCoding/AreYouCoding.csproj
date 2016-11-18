@@ -105,17 +105,20 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="mainMindow\fileOperate.cs" />
+    <Compile Include="mainMindow\settingTab.cs" />
+    <Compile Include="mainMindow\situationTab.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="newMonitor.xaml">
+    <Page Include="newMonitor\newMonitor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="newMonitor.xaml.cs">
+    <Compile Include="newMonitor\newMonitor.xaml.cs">
       <DependentUpon>newMonitor.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -165,6 +168,7 @@
   <ItemGroup>
     <Resource Include="resource\plus.ico" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -51,7 +51,7 @@
                         </Grid>
                     </Button>
 
-                    <DataGrid HorizontalAlignment="Stretch" x:Name="runTimeList" ItemsSource="{Binding}" Margin="0,28,0,0" Grid.ColumnSpan="2" CanUserSortColumns="False" CanUserReorderColumns="False" AutoGenerateColumns="False">
+                    <DataGrid HorizontalAlignment="Stretch" x:Name="runTimeList" ItemsSource="{Binding}" Margin="0,28,0,0" Grid.ColumnSpan="2" CanUserSortColumns="False" CanUserReorderColumns="False" AutoGenerateColumns="False" CanUserAddRows="False">
                         
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Identification" Binding="{Binding Identification}" Width="100" />

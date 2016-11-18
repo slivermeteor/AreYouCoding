@@ -1,13 +1,14 @@
 # Welcome to use AreYouCoding - Count you the time of use any software that you want to count
 
-# 2016-11-6 Commit note
-Today, I start to perfect the "detail situation" label.I want to add ToolBar and TopMenu to it.First of all, I need to leant how to use them.So it may be a long time to see I complete it.
-To be honest, perfecting the "detail dynamics" is more important.If I come across too many problems in learnning use the two Controls, I may first do this. 
+# 2016-11-18 Commit node
+Because of some exams, I don't have enough time to update this project.But now, I'm coming back.In this update, I use DataGrid control to replace ListView control in order to achiece the
+function of correct the running time in the list.At now, I have not complete this function, but, at the next time, I will push it.
+Second, I have separate code into different file.Each file's code's function is writed in the top of file.I hope this will help everyone to more easy to
+understand the project.
+Third, I fix some bugs what almost about monitorring threading.
+Last, I have transfer old commit node to the file 'UpdateData.txt'.If you want to know the old update note, please to read it.
 
-# 2016-11-6 Commit note
-I have distinguish different process in the listview.So you can look these process's run time that have the same name.
-Next time, I will perfect the "detail dynamics" labe.I will make it can show the recent monitor process run time situation in it.
-Meanwhile, I may adjust the "detail situation" label, but I don't have a specific idea about it.So you can have a expect about it.
+
 
 ## Introduce
 This project is written by C#, perhaps i will add dll written by C++ to the project in the future.
