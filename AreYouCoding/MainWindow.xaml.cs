@@ -480,8 +480,34 @@ namespace AreYouCoding
 
         private void Setting_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+            // 隐藏combox
             this.detailProcessName.Visibility = Visibility.Hidden;
+            // 读取ini文件，加载所有设置
+            uint StartInBoot = GetPrivateProfileInt("config", "StartInBoot", 0, inifilePath);
+            if (StartInBoot == 2 || StartInBoot == 0)       // 第一次加载 || 不启动
+            {
+                this.IsStartInBoot.IsChecked = false;
+            }
+            else
+            {
+                this.IsStartInBoot.IsChecked = true;
+            }
+
+            uint closeIndex = GetPrivateProfileInt("config", "CloseIndex", 0, inifilePath);
+            if (closeIndex == 0 || closeIndex == 2)   // 还未设置节点  || 最小化
+            {
+                this.miniRadio.IsChecked = true;
+                this.exitRadio.IsChecked = false;
+            }
+            else
+            {
+                this.miniRadio.IsChecked = false;
+                this.exitRadio.IsChecked = true;
+            }
+
         }
+
+        
     }
 
     // 扩展资源类 -  set 方法需要添加安全性检查

@@ -2,6 +2,7 @@
 
 # 2016-12-2 Commit Note
 I change the MainWindow's closing message. At the first time, User can choose click the close button to exit process or just minimize the mainwindow.
+At the same time, I add two radiobutton into setting tableitem.User can also set what to do when close the mainwindow.
 
 # What I will do    
 1.I will perfect "Detail dynamics"  label as soon as possible.This time, I will suit the action to the word!!! :)   

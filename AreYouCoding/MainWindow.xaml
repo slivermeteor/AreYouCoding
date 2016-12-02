@@ -26,7 +26,7 @@
                     <ColumnDefinition Width="8*" />
                     <ColumnDefinition Width="2*" />
                 </Grid.ColumnDefinitions>
-                
+
                 <ToolBar Height="27" Grid.Column="0">
                     <Button Click="newMonitor_Click" Width="24">
                         <Image Source="resource/plus.ico"></Image>
@@ -56,7 +56,7 @@
                     <Label Content="Detail situation" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MouseLeftButtonDown="Situation_MouseLeftButtonDown" FontSize="12" />
                 </TabItem.Header>
                 <Grid>
-                                     
+
                     <DataGrid HorizontalAlignment="Stretch" x:Name="runTimeList" ItemsSource="{Binding}" CanUserSortColumns="False" CanUserReorderColumns="False" AutoGenerateColumns="False" CanUserAddRows="False">
 
                         <DataGrid.Columns>
@@ -81,10 +81,15 @@
                     <Label Content="Setting" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" MouseLeftButtonDown="Setting_MouseLeftButtonDown"/>
                 </TabItem.Header>
                 <Grid>
-                    <Label Content="common" Height="28" HorizontalAlignment="Left" Margin="6,6,0,0" VerticalAlignment="Top" Width="74" />
+                    <Label Content="common" Height="40" HorizontalAlignment="Left" Margin="6,6,0,0" VerticalAlignment="Top" Width="126" FontSize="25"/>
 
-                    <Label Content="start in boot" Height="28" HorizontalAlignment="Left" Margin="6,39,0,0" VerticalAlignment="Top" Width="85" />
-                    <CheckBox x:Name="IsStartInBoot" HorizontalAlignment="Left" Margin="110,45,0,0" VerticalAlignment="Top" Checked="IsStartInBoot_Checked" Unchecked="IsStartInBoot_Unchecked"/>
+                    <Label Content="start in boot" Height="34" HorizontalAlignment="Left" Margin="6,39,0,0" VerticalAlignment="Top" Width="132" FontSize="20"/>
+                    <CheckBox x:Name="IsStartInBoot" HorizontalAlignment="Left" Margin="143,50,0,0" VerticalAlignment="Top" Checked="IsStartInBoot_Checked" Unchecked="IsStartInBoot_Unchecked" RenderTransformOrigin="1.104,-0.733"/>
+
+                    <Label Content="CloseMainWindow:" HorizontalAlignment="Left" Margin="6,70,0,0" VerticalAlignment="Top" FontSize="20"/>
+                    <RadioButton x:Name="exitRadio" Content="exit" Margin="12,105,538,230" Click="exitRadio_Click" Checked="exitRadio_Checked" FontSize="15" />
+                    <RadioButton x:Name="miniRadio" Content="minimize" Margin="12,125,536,213" Click="miniRadio_Click" Checked="miniRadio_Checked" FontSize="15"/>
+                    <GridSplitter Margin="0,0,0,100"></GridSplitter>
                 </Grid>
             </TabItem>
         </TabControl>

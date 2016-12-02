@@ -30,7 +30,7 @@ namespace AreYouCoding
             int iEnd = strfileName.LastIndexOf('.');
             if (RunInBoot(strfileName.Substring(0, iEnd), System.Windows.Forms.Application.ExecutablePath, false))
             {
-                WritePrivateProfileString("config", "StartInBoot", "0", inifilePath);
+                WritePrivateProfileString("config", "StartInBoot", "2", inifilePath);
             }
         }
 
@@ -71,5 +71,44 @@ namespace AreYouCoding
             return true;
         }
 
+        // 主面板关闭选择
+        private void exitRadio_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.exitRadio.IsChecked == true)    // 已经选中了，不干事
+            {
+                return;
+            }
+            else
+            {
+                this.exitRadio.IsChecked = true;     // 没选中 触发               
+            }
+        }
+
+        private void miniRadio_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.miniRadio.IsChecked == true)    // 已经选中了，不干事
+            {
+                return;
+            }
+            else
+            {
+                this.miniRadio.IsChecked = true;    // 没选中 触发 
+            }
+        }
+
+        private void exitRadio_Checked(object sender, RoutedEventArgs e)
+        {
+            this.miniRadio.IsChecked = false;   // 将另一个Unchecked
+
+            // 修改config文件
+            WritePrivateProfileString("config", "CloseIndex", "1", inifilePath);
+        }
+
+        private void miniRadio_Checked(object sender, RoutedEventArgs e)
+        {
+            this.exitRadio.IsChecked = false;
+
+            WritePrivateProfileString("config", "CloseIndex", "2", inifilePath);
+        }
     }
 }
