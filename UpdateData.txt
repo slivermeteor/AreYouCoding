@@ -1,3 +1,8 @@
+# 2016-11-18 Night Commit node
+I have rearranged the TabItem "situation" layout.Add some funtions to the ToolBar.   
+The StatusBar will show the total process running time!    
+Beacuse of the StatusBar have this functions, I beileve AreYouCoding have the able to use a simple tool, though it still have many items to perfect.    
+
 # 2016-11-18 Commit node
 Because of some exams, I don't have enough time to update this project.But now, I'm coming back.In this update, I use DataGrid control to replace ListView control in order to achiece the
 function of correct the running time in the list.At now, I have not complete this function, but, at the next time, I will push it.

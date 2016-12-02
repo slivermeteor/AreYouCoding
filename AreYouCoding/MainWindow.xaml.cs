@@ -21,6 +21,8 @@ using System.Windows.Forms;     // 项目添加引用
 using System.Runtime.InteropServices;
 using System.Text;              // StringBuilder
 
+using AreYouCoding.CloseWindow;
+
 
 namespace AreYouCoding
 {
@@ -154,10 +156,39 @@ namespace AreYouCoding
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            notifyIcon.Dispose();
+            CloseWindow(sender, e);
+        }
 
-            // 结束所有线程
-            System.Environment.Exit(System.Environment.ExitCode);
+        private void CloseWindow(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            // 读取ini文件 判断是否显示选择匡
+            uint showChoose = GetPrivateProfileInt("config", "showClose", 0, inifilePath);
+            if (showChoose == 0 || showChoose == 1)   // 第一次关闭 从来没有选择过 | 选择了显示
+            {
+                // 启动选择框
+                closeWindow close = new closeWindow();
+                close.ShowDialog();
+                if (close.bCancel == true)
+                {
+                    e.Cancel = true;
+                    return;
+                }
+            }
+
+            uint CloseIndex = GetPrivateProfileInt("config", "CloseIndex", 0, inifilePath);
+            if (CloseIndex == 1)    // 直接关闭程序
+            {
+                notifyIcon.Dispose();
+                // 结束所有线程
+                System.Environment.Exit(System.Environment.ExitCode);
+            }
+            else if (CloseIndex == 2)   // 隐藏窗口
+            {
+                this.Visibility = Visibility.Hidden;
+                e.Cancel = true;
+            }
+
+            return;
         }
 
         // 监视线程

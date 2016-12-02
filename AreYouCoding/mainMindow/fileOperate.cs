@@ -21,7 +21,7 @@ namespace AreYouCoding
         private static extern long GetPrivateProfileString(string section, string key, string defaultString, StringBuilder returnString, int size, string filePath);
 
         [DllImport("Kernel32")]
-        private static extern ulong GetPrivateProfileInt(string section, string key, int defaultValue, string filePath);
+        private static extern uint GetPrivateProfileInt(string section, string key, int defaultValue, string filePath);
         #endregion
 
         // 文件操作函数

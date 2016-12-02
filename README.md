@@ -1,10 +1,9 @@
 # Welcome to use AreYouCoding - Count you the time of use any software that you want to count
 
-# 2016-11-18 Night Commit node
-I have rearranged the TabItem "situation" layout.Add some funtions to the ToolBar.   
-The StatusBar will show the total process running time!    
-Beacuse of the StatusBar have this functions, I beileve AreYouCoding have the able to use a simple tool, though it still have many items to perfect.    
-## What I will do    
+# 2016-12-2 Commit Note
+I change the MainWindow's closing message. At the first time, User can choose click the close button to exit process or just minimize the mainwindow.
+
+# What I will do    
 1.I will perfect "Detail dynamics"  label as soon as possible.This time, I will suit the action to the word!!! :)   
 2.Make the front of StatusBar to show some useful imformation.   
 3.I hope the AreYouCoding will show everyuser the situation of monitor at the a specfice day.   
