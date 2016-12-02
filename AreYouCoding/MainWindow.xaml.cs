@@ -54,7 +54,7 @@ namespace AreYouCoding
         // 窗口启动监视线程 知道监听到 我们才启动UI线程 来修改界面元素  
         public MainWindow()
         {
-            //this.Visibility = Visibility.Hidden;      // 初始化不可见
+            this.Visibility = Visibility.Hidden;      // 初始化不可见
             InitializeComponent();
 
             ulong monitorProcessNumber = 0;
@@ -443,11 +443,6 @@ namespace AreYouCoding
         // 点击Detail 加载图片
         private void Situation_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            BitmapImage bitmap = new BitmapImage();
-            bitmap.BeginInit();
-            bitmap.UriSource = new Uri(Environment.CurrentDirectory + "\\resource\\Trash.png", UriKind.RelativeOrAbsolute);
-            bitmap.EndInit();
-
             // 显示下拉框
             this.detailProcessName.Visibility = Visibility.Visible;
         }

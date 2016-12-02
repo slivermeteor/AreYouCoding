@@ -108,5 +108,17 @@ namespace AreYouCoding
             return false;
         }
 
+        // 过滤回车消息
+        private void textBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            switch(e.Key)
+            {
+                case Key.Enter:
+                    {
+                        monitorButton_Click(null, null);
+                        break;
+                    }
+            }
+        }
     }
 }
